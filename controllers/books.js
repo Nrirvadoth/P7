@@ -2,7 +2,7 @@ const Book = require('../models/Book')
 
 exports.getAllBooks = (req, res, next) => {}
 
-exports.getOneBooks = (req, res, next) => {}
+exports.getOneBook = (req, res, next) => {}
 
 exports.bestRating = (req, res, next) => {}
 
