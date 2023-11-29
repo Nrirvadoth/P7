@@ -30,7 +30,7 @@ exports.createBook = (req, res, next) => {
         ...object,
         userId: req.auth.userId,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-        ratings: {userId: req.auth.userId}
+        ratings: [{userId: req.auth.userId, grade: `${object.ratings[0].grade}`}]
     })
     book.save()
     .then(() => {
