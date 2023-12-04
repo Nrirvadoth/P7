@@ -6,7 +6,7 @@ module.exports = (req, res, next) => {
     const tokenDecoded = jwt.verify(token, 'OCP6-token_1548re58e')
     const userId = tokenDecoded.userId
     req.auth = { userId: userId }
-    next();
+    next()
   } catch {
     res.status(401).json({ error })
   }
