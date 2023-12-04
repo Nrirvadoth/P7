@@ -44,13 +44,7 @@ exports.createBook = (req, res, next) => {
 
 exports.modifyBook = (req, res, next) => {
   let book
-  if (!req.body.image) {
-    book = new Book({
-      ...req.body,
-      _id: req.params.id,
-      userId: req.auth.userId,
-    })
-  } /* else {
+  if (req.file) {
     const object = JSON.parse(req.body.book)
     book = new Book({
       ...object,
@@ -58,7 +52,13 @@ exports.modifyBook = (req, res, next) => {
       userId: req.auth.userId,
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
     })
-  } */
+  } else {
+    book = new Book({
+      ...req.body,
+      _id: req.params.id,
+      userId: req.auth.userId,
+    })
+  }
   Book.updateOne({_id: req.params.id}, book)
   .then(() => {
     res.status(200).json({ message: 'Livre modifié' })
