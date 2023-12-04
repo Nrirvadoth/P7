@@ -29,9 +29,7 @@ exports.createBook = (req, res, next) => {
   const book = new Book({
     ...object,
     userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${
-      req.file.filename
-    }`,
+    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
     ratings: [{ userId: req.auth.userId, grade: `${object.ratings[0].grade}` }],
   })
   book
@@ -44,8 +42,40 @@ exports.createBook = (req, res, next) => {
     })
 }
 
-exports.modifyBook = (req, res, next) => {}
+exports.modifyBook = (req, res, next) => {
+  let book
+  if (!req.body.image) {
+    book = new Book({
+      ...req.body,
+      _id: req.params.id,
+      userId: req.auth.userId,
+    })
+  } /* else {
+    const object = JSON.parse(req.body.book)
+    book = new Book({
+      ...object,
+      _id: req.params.id,
+      userId: req.auth.userId,
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+    })
+  } */
+  Book.updateOne({_id: req.params.id}, book)
+  .then(() => {
+    res.status(200).json({ message: 'Livre modifié' })
+  })
+  .catch((error) => {
+    res.status(400).json({ error })
+  })
+}
 
-exports.deleteBook = (req, res, next) => {}
+exports.deleteBook = (req, res, next) => {
+  Book.deleteOne({_id: req.params.id})
+  .then(() => {
+    res.status(200).json({ message: 'Livre supprimé' })
+  })
+  .catch((error) => {
+    res.status(400).json({ error })
+  })
+}
 
 exports.addRating = (req, res, next) => {}
