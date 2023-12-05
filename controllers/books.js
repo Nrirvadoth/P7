@@ -39,7 +39,7 @@ exports.createBook = (req, res, next) => {
     })
     .catch((error) => {
       res.status(400).json({ error })
-    })
+  })
 }
 
 exports.modifyBook = (req, res, next) => {
@@ -78,4 +78,38 @@ exports.deleteBook = (req, res, next) => {
   })
 }
 
-exports.addRating = (req, res, next) => {}
+exports.addRating = (req, res, next) => {
+  const newRating = req.body
+  let totalScore = 0
+  let updateAverageRating = 0
+
+  try {
+    const updateBook = Book.findOneAndUpdate(
+      { _id: req.params.id },
+      { $push: {ratings: {
+        userId: newRating.userId,
+        grade: newRating.rating}}}
+      )
+    .then(() => {
+      for (let i = 0; i < updateBook.ratings.length; i++) {
+        totalScore += updateBook.ratings[i].grade
+      }
+      updateAverageRating = totalScore / (updateBook.ratings.length + 1)
+      Book.findOneAndUpdate(
+        { _id: req.params.id },
+        { $set: {averageRating: updateAverageRating}}
+      )
+      .then((book) => {
+        res.status(200).json(book)
+      })
+      .catch((error) => {
+        res.status(400).json({ error })
+      })
+    })
+    .catch((error) => {
+      res.status(400).json({ error })
+    })
+  } catch(error) {
+    res.status(400).json({ error })
+  }
+}
