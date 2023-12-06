@@ -20,7 +20,15 @@ exports.getOneBook = (req, res, next) => {
     })
 }
 
-exports.bestRating = (req, res, next) => {}
+exports.bestRating = (req, res, next) => {
+  Book.aggregate([{ $sort: { averageRating: -1 } }, { $limit: 3 }])
+    .then((bestRated) => {
+      res.status(200).json(bestRated)
+    })
+    .catch((error) => {
+      res.status(400).json({ error })
+    })
+}
 
 exports.createBook = (req, res, next) => {
   const object = JSON.parse(req.body.book)
@@ -29,7 +37,9 @@ exports.createBook = (req, res, next) => {
   const book = new Book({
     ...object,
     userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+    imageUrl: `${req.protocol}://${req.get('host')}/images/${
+      req.file.filename
+    }`,
     ratings: [{ userId: req.auth.userId, grade: `${object.ratings[0].grade}` }],
   })
   book
@@ -39,7 +49,7 @@ exports.createBook = (req, res, next) => {
     })
     .catch((error) => {
       res.status(400).json({ error })
-  })
+    })
 }
 
 exports.modifyBook = (req, res, next) => {
@@ -50,7 +60,9 @@ exports.modifyBook = (req, res, next) => {
       ...object,
       _id: req.params.id,
       userId: req.auth.userId,
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${
+        req.file.filename
+      }`,
     })
   } else {
     book = new Book({
@@ -59,23 +71,23 @@ exports.modifyBook = (req, res, next) => {
       userId: req.auth.userId,
     })
   }
-  Book.updateOne({_id: req.params.id}, book)
-  .then(() => {
-    res.status(200).json({ message: 'Livre modifié' })
-  })
-  .catch((error) => {
-    res.status(400).json({ error })
-  })
+  Book.updateOne({ _id: req.params.id }, book)
+    .then(() => {
+      res.status(200).json({ message: 'Livre modifié' })
+    })
+    .catch((error) => {
+      res.status(400).json({ error })
+    })
 }
 
 exports.deleteBook = (req, res, next) => {
-  Book.deleteOne({_id: req.params.id})
-  .then(() => {
-    res.status(200).json({ message: 'Livre supprimé' })
-  })
-  .catch((error) => {
-    res.status(400).json({ error })
-  })
+  Book.deleteOne({ _id: req.params.id })
+    .then(() => {
+      res.status(200).json({ message: 'Livre supprimé' })
+    })
+    .catch((error) => {
+      res.status(400).json({ error })
+    })
 }
 
 exports.addRating = (req, res, next) => {
@@ -86,30 +98,40 @@ exports.addRating = (req, res, next) => {
   try {
     const updateBook = Book.findOneAndUpdate(
       { _id: req.params.id },
-      { $push: {ratings: {
-        userId: newRating.userId,
-        grade: newRating.rating}}}
-      )
-    .then(() => {
-      for (let i = 0; i < updateBook.ratings.length; i++) {
-        totalScore += updateBook.ratings[i].grade
-      }
-      updateAverageRating = totalScore / (updateBook.ratings.length + 1)
-      Book.findOneAndUpdate(
-        { _id: req.params.id },
-        { $set: {averageRating: updateAverageRating}}
-      )
-      .then((book) => {
-        res.status(200).json(book)
+      {
+        $push: {
+          ratings: {
+            userId: newRating.userId,
+            grade: newRating.rating,
+          },
+        },
+      },
+    )
+      .then(() => {
+        for (let i = 0; i < updateBook.ratings.length; i++) {
+          totalScore += updateBook.ratings[i].grade
+        }
+        updateAverageRating = totalScore / (updateBook.ratings.length + 1)
+        Book.findOneAndUpdate(
+          { _id: req.params.id },
+          { $set: { averageRating: updateAverageRating } },
+        )
+          .then((book) => {
+            res.status(200).json(book)
+          })
+          .catch((error) => {
+            res.status(400).json({ error })
+          })
       })
       .catch((error) => {
         res.status(400).json({ error })
       })
-    })
-    .catch((error) => {
-      res.status(400).json({ error })
-    })
-  } catch(error) {
+  } catch (error) {
     res.status(400).json({ error })
   }
 }
+/* 
+Book.aggregate([
+  { $match: { _id: req.params.id } },
+  { $set: {averageRating: $avg {ratings.grade}}}
+]) */
