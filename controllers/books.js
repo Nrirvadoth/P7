@@ -33,14 +33,13 @@ exports.bestRating = (req, res, next) => {
 exports.createBook = (req, res, next) => {
   const object = JSON.parse(req.body.book)
   delete object.userId
-  delete object.ratings.userId
   const book = new Book({
     ...object,
     userId: req.auth.userId,
     imageUrl: `${req.protocol}://${req.get('host')}/images/${
       req.file.filename
     }`,
-    ratings: [{ userId: req.auth.userId, grade: `${object.ratings[0].grade}` }],
+    ratings: [{ userId: req.auth.userId, grade: object.ratings[0].grade }],
   })
   book
     .save()
