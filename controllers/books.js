@@ -90,9 +90,16 @@ exports.deleteBook = (req, res, next) => {
 }
 
 exports.addRating = async (req, res, next) => {
-  const newRating = req.body
   let totalScore = 0
   let updateAverageRating = 0
+
+  const bookToUpdate = await Book.findOne({ _id: req.params.id })
+  const ratingExist = bookToUpdate.ratings.find(bookRatings => bookRatings.userId === req.auth.userId)
+
+  if (ratingExist) {
+    res.status(401).json({ message: "Vous avez déjà noté ce livre" })
+    return
+  }
 
   try {
     const updateBook = await Book.findOneAndUpdate(
@@ -100,8 +107,8 @@ exports.addRating = async (req, res, next) => {
       {
         $push: {
           ratings: {
-            userId: newRating.userId,
-            grade: newRating.rating,
+            userId: req.auth.userId,
+            grade: req.body.rating,
           },
         },
       },
@@ -121,8 +128,3 @@ exports.addRating = async (req, res, next) => {
     res.status(400).json({ error })
   }
 }
-/* 
-Book.aggregate([
-  { $match: { _id: req.params.id } },
-  { $set: {averageRating: $avg {ratings.grade}}}
-]) */
