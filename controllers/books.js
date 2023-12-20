@@ -97,7 +97,7 @@ exports.addRating = async (req, res, next) => {
   const ratingExist = bookToUpdate.ratings.find(bookRatings => bookRatings.userId === req.auth.userId)
 
   if (ratingExist) {
-    res.status(401).json({ message: "Vous avez déjà noté ce livre" })
+    res.status(409).json({ message: "Vous avez déjà noté ce livre" })
     return
   }
 
