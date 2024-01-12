@@ -23,3 +23,12 @@ exports.optimize = async (req, res, next) => {
 
   next()
 }
+
+
+/* var middleware2 = function(param) {
+  return function(req, res, next){
+    middleware1(req, res, function(){
+      // middleware2 code
+    });
+  }
+} */
